@@ -1,0 +1,106 @@
+\section{Background}
+
+\subsection {Neural Processes}
+Suppose that we have an observation set $X = \left\{x_i \right\}_{i=1}^{n}$, a
+label set $Y = \left\{y_i\right\}_{i=1}^{n}$ and context $(X_c, Y_c) :=
+\left\{(x_j, y_j)\right\}_{j\in c}$. The neural process aims to find the mapping
+from input $x$ to target $y$ given the context dataset $(X_c, Y_c)$. The neural
+process estimates $p(y_i|x_i;(X_c, Y_c))$ with two neural networks called an
+encoder and a decoder. The encoder $f_{\textrm{enc}}$ embeds $(X_c, Y_c)$ into a
+representation $\phi$ through permutation-invariant set encoding
+\cite{zaheer2017deep, edwardstowards} and the decoder $f_{\textrm{dec}}$
+transforms $\phi$ and $x_i$ into the parameter of target distribution (e.g
+Gaussian case : $\mu_i, \ \sigma_i$). We evaluate the performance of neural
+processes with log likelihood of target distributions. For all tasks, the
+expected log likelihood of is typically used for the base loss :
+$\mathbb{E}_{p(\mathcal{T})} [\log(Y|X;(X_c,Y_c)]$.
+
+\begin{equation}
+\label{eq1}
+\begin{gathered}
+\log p(Y | X; (X_c, Y_c)) = \sum_{i=1}^{n} \log \mathcal{N}(y_i|\mu_i,\sigma_i) \\
+\textrm{where} \quad (\mu_i, \sigma_i) = f_{\textrm{dec}}(\phi, x_i) \quad \phi = f_{\textrm{enc}}(\left\{ x_j, y_j\right\}_{j \in c})
+\end{gathered}
+\end{equation}
+
+The variants of neural processes can be distinguished by the architecture of set
+encoding network. The conditional neural process models a representation $\phi$
+as a deterministic variable. By using average aggregation, this encoder maps a
+context dataset into single deterministic representation $\phi =
+\nicefrac{1}{\lVert c \rVert} \sum_{i \in c} f_{enc_i}(x_i, y_i)$
+\cite{garnelo2018conditional}. The neural process introduces a probabilistic
+latent variable $z$ to consider functional uncertainty like stochastic
+processes, which draw from $\left\{\mu_{enc}, \sigma_{enc}\right\}$ by
+$f_{enc_i}(X_c, Y_c)$. \cite{garnelo2018neural}. By adapting a latent variable
+based on variational inference, the loss consists a log likelihood term and
+regularization term between variational distribution $q(z|X, Y)$ and the prior
+distribution $p(z|X_c, Y_c)$. 
+
+\begin{equation}
+\begin{split}
+\label{eq2}
+\log p(Y|X;(X_c, Y_c)) &\geq \sum_{i=1}^{n} \mathbb{E}_{q(z|X,Y)}\left[ \frac{p(y_i|x_i,z,\phi)p(z|X_c,Y_c)}{q(z|X,Y)} \right] \\ &\approx \sum_{i=1}^{n} \mathbb{E}_{q(z|X,Y)}\left[ \frac{p(y_i|x_i,z,\phi)q(z|X_c,Y_c)}{q(z|X,Y)} \right]
+\end{split}
+\end{equation}
+
+For simplicity, we assume $p(z|X_c, Y_c) \approx q(z|X_c, Y_c)$. However, the average aggregation over a context dataset ${x_j, y_j}_{j \in C}$ is too restricted to describe all dependencies from perspective of a target dataset. To enhance expressiveness of set encoding, attention mechanism is introduced that can measure the similarity between data using neural networks. it called the attentive neural process \cite{kim2019attentive}. Despite of same loss function, the under-fitting issues in existing neural processes are resolved. Several set encoding method in neural processes are suggested for neural such as kernel method and additional global latent variable to contain all task information \cite{xu2020metafun, Fan2020bayesian}. The attentive neural process is considered as baseline method in terms of model versatility. 
+
+\subsection {Bayesian Attention Module}
+Consider \textit{n} key-value pairs, packed into a key matrix $K \in
+\mathbb{R}^{n \times d_k}$ and a value matrix $V \in \mathbb{R}^{n \times d_v}$
+and \textit{m} queries packed into $Q \in \mathbb{R}^{m \times d_k}$, where the
+dimensions of queries and keys are same. The attention mechanism aims to create
+appropriate output features $O$ based on a key matrix taking into account the
+relationship between queries and keys. Typically, we can obtain output features
+via $O = WV \in \mathbb{R}^{d_v}$. For an attention weight to satisfy the
+simplex constraint summing to 1 and non-negative value, we use a softmax
+function over the number of keys.
+
+\begin{equation}
+\begin{gathered}
+    W_{i,j} = \frac{\exp(\Phi_{i,j})}{\sum_{j=1}^{n} \exp(\Phi_{i,j})}\\
+    \textrm{where} \quad \Phi = f(Q, K)
+\end{gathered}
+\end{equation}
+
+Intuitively, the scale of element $W_{ij}$ means the importance of the $j$th key
+to the $i$th query. The alignment score function $f$ have many choices, but
+scaled dot-product is typically used. \\
+The neural network can be one of the options to model should learn $Q$ and $K$ such that $W$ gives higher weights to more important keys.
+
+
+
+% \paragraph{Neural Processes}
+% \begin{itemize}
+%     \item {GQN 네트워크가 도출되면서 아키텍쳐가 제시되었음 }
+%     \item {현재까지의 Neural Processe는 성능의 향상을 도모하기 위한 모델들이 제시됨.}
+%     \item {기존 Neural Processes는 average pooling 방식으로 context points들을 하나의 vector로 표현함}
+%     \item {Attentive neural processes에서는 context dataset과 targeet dataset의 관계를 cross-attention 구조로 나타냄}
+%     \item{Convolutional neural processes는 학습된 영역 이외 영역에서도 동일한 패턴의 예측을 진행할 수 있는 모델을 제시 / 이미지 데이터에 특화}
+%     \item{Bootstrapped NP는 기존 제시된 모델들이 noise에 민감하다는 문제를 언급하고 해결하기 위해 pseudo context dataset을 생성할 수 있는 보조 네트워크를 이용하여 강건한 모델을 제시}
+%     \item{Meta-fun은 기존 attention을 이용한 context dataset과 target dataset의 연관성을 kernel matrix로 표현하고 이에 더해 기존 optimization meta learning에서 활용하였던 inner loop를 이용하여 성능을 향상시킴}
+%     \item{최근 ICLR Neural Processes에 나온 이야기를 진행}
+%     \item{NP의 외연을 확장하고 있음}
+%     \item{NP + NODE}
+%     \item{NP + NTK}
+%     \item{그러나 Neural Processes에서 image centric 문제를 제외한 NP가 주로 활용되는 예제에서 memorization 문제를 언급하지 않았고, 모델의 강건성 측면에서 해결한 방법은 제안하지 않음}
+%     \item{앞선 모델들의 경향}
+%     \item{NP가 어떤 상황에서 memorization이 이뤄지는지 언급되지 않음}
+%     \item{meta-train overfitting을 방지하기 위해 np 알고리즘에 입각하여 해결할 수 있는 방법을 언급된 것이 없음}
+%     \item{이는 high capacity decoder와 set encoding이 잘못되었기 때문에 발생한다는 것을 밝혀냄}
+%     \item{Noise가 있는 상황에서 강건한 모델을 제안하는 방법은 Bootstrapped NP가 처음 제시}
+%     \item{단 computations이 많이 소모되는 방법으로 제시함}
+%     \item{본 모델은 한번의 MC sampling과 feed forward로도 강건하면서도 원래 의도한 성능을 뽑아 낼 수 있는 모델을 제시}
+%     \item{이를 풀기 위해서는 noise injection을 통한 모델 강건화가 반드시 필요}
+%     \item{Memorization 문제 해결}
+%     \item{Context-Target 간의 설명력 증대}
+%     \item{기존 ANP의 경우 attention 부분에 stochasticity가 없기 때문에 overfitting이 쉽게 발생함}
+%     \item{이를 해결하기 위해 bayesian attention을 통해 모델이 큰 기류의 data feature는 학습하면서도 강건성을 유지할 수 있도록 모델을 제시함.}
+%     \item{Stochastic attention (categorial reparameterizations)}
+% \end{itemize}
+
+% \paragraph{Bayesian attention modules}
+% \begin{itemize}
+%     \item {-}
+% \end{itemize}
+

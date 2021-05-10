@@ -1,0 +1,91 @@
+\section{Introduction}
+Unlike gaussian processes, neural processes make predictions of unseen data
+based on a given set of contextual data without requiring huge computational
+costs by introducing the meta-learning framework\cite{garnelo2018conditional,
+garnelo2018neural, kim2019attentive}. Many papers reveal that neural processes
+can replace gaussian processes in decision-making problems such as multi-armed
+bandits, reinforcement learning, and recommendation systems without
+consideration of hyper-parameters and kernel functions because predictive
+functions and their uncertainty are determined by the meta-train step
+\cite{garnelo2018neural, galashov2019meta, wei2019transferable,
+korshunova2020conditional}. Recent papers present that large-scale networks
+utilize the architecture of neural processes to understand the concepts of a
+target problem by looking at a small amount of information. For instance, in
+neural architecture searches, the neural processes can generate mask tensors and
+penalty loss to obtain better-generalized models with a few experimental
+observations \cite{NEURIPS2020_84ddfb34, lee2020neural, yoon2020robustifying}.
+The generative query network which can create new scenes on unvisited locations
+borrows the architecture of the neural processes to understand space information
+with a few observations \cite{eslami2018neural, Singh2019Sequential,
+yoon2020robustifying}. These characteristics are followed by the meta-learning
+framework, which has the advantage of superior generalization compared to
+typical learning procedures. However, the memorization phenomenon of
+meta-learning frameworks has been reported. During the meta-train phase, we
+expect meta learners to learn predictability for unseen data taking into account
+the given contextual data, but this framework tends to easily memorize the
+entire meta-train data set only to minimize meta-train loss but not to learn the
+relationship between given contextual data and unseen data when the number of
+tasks is small and the relationship between tasks. Recent papers have been
+presented to address memorization by directly adding randomness into data
+\citep{yin2019meta, Rajendran2020meta, yao2020improving}. The stochastic encoder
+of input data derived by the information bottleneck theory prevents memorization
+by efficiently compressing input information and generating appropriate noises
+\cite{yin2019meta}. Injecting random noises to target values and latent mix-up
+improves the generalization performance of meta-learning
+\cite{Rajendran2020meta, yao2020improving}. However, there are limitations to
+generalizing to all meta-learning problems because the memorization of
+meta-learning was reported in only image-based problems as well as all proposed
+solutions have also used image-based data augmentation techniques. \\
+In this paper, we discover that memorization that degrades meta-learner's performance also exists in image completion, meta-regression problem, and real-world recommendation system, which are typical examples of neural processes. Unlike existing solutions, we propose an algorithm that solves memorization itself without data augmentation. 
+This paper shows that attention mechanism and average pooling which neural processes mainly used as the set encoder are difficult to train due to fragility and sensitivity under a limited number of tasks with inevitable noises. Second, high-capacity decoders that generate predicted values of unseen data make it difficult for the set encoder to train properly. To mitigate the memorization, we employ the stochastic attention mechanism as the set encoder to properly express the relationship between context and target dataset even under noisy few-shot frameworks. We revisit the stochastic attention module from a different perspective, which has proven performance on large datasets such as graph attention networks and natural language processing \cite{Fan2020bayesian}. The stochasticity of the proposed model makes it insensitive to noise and prevents memorizing the meta-train dataset so that we can model the appropriate relationship between context and target datasets. Accordingly, even if a new task is not close to the tasks in a meta-train dataset, the proposed model can properly predict target values based on the context dataset, not the meta-train dataset. The proposed model provides several benefits over existing models. The important aspect is its robustness under the presence of model-data mismatch, where meta-test data comes from distribution different from the meta-train data. In the previous work, an ensemble of bootstrap and an auxiliary network to re-generate context data can guarantee model robustness under model-data mismatch, but it requires additional computation and lack of explainability of re-generated data \cite{lee2020bootstrapping}. However, the proposed model captures the dependencies of context and target datasets guaranteeing the model's predictive performance and insensitive to noises without additional parameters and resource consumption compared to attentive neural processes \cite{kim2019attentive} even if model-data mismatch. Moreover, the proposed method can be not only used in the real-world recommendation dataset, movieLenz-10k, but also in image completion, lotka-volterra, and regression problems, which have limited numbers of users (tasks) and noisy datasets. In this paper, we empirically shows that the proposed model can be fully utilized in several experiments like a real-world setting in which the variants of neural processes lack performance.
+
+
+% \section{Introduction}
+% Unlike gaussian processes, neural processes make predictions of unseen data based on a given set of contextual data without requiring huge computational costs by introducing the meta-learning framework\cite{garnelo2018conditional, garnelo2018neural, kim2018attentive}. Many papers reveal that neural processes can replace to gaussian processes in decision-making problems such as multi-armed bandits, reinforcement learning and recommendation systems without consideration of hyper-parameters and kernel functions because predictive functions and their uncertainty are determined by the meta-train step \cite{garnelo2018neural, galashov2019meta, wei2019transferable, korshunova2020conditional}. Recent papers present that large-scale networks utilize the architecture of neural processes to understand the concepts of a target problem by looking at a small amount of information. For instance, in neural architecture searches,   the neural processes can generate mask tensors and penalty loss to obtain better generalized models with a few experimental observations \cite{NEURIPS2020_84ddfb34, lee2020neural, yoon2020robustifying}. The generative query network which can create new scenes on unvisited locations borrows architecture of the neural processes to understand space information with a few observations \cite{eslami2018neural, Singh2019Sequential, yoon2020robustifying}. 
+% These characteristics are followed by the meta learning framework, which has the advantage of superior generalization compared to typical learning procedures. However, the memorization phenomenon of meta learning frameworks has been reported. During the meta-train phase, we expect meta learners to learn predictability for unseen data taking into account the given contextual data, but this framework tends to easily memorize the entire meta-train data set only to minimize meta-train loss but not to learn the relationship between given contextual data and unseen data when the number of tasks is small and the relationship between tasks. Recent papers have been presented to address memorization by directly adding randomness into data \citep{yin2019meta, Rajendran2020meta, yao2020improving}. The stochastic encoder of input data derived by the information bottleneck theory prevents memorization by efficiently compressing input information and generating appropriate noises \cite{yin2019meta}. Injecting random noises to target values and latent mix-up improves the generalization performance of meta-learning  \cite{Rajendran2020meta, yao2020improving}.
+% However, there are limitations to generalizing to all meta learning problems because the memorization of meta learning was reported in only image-based problems as well as all proposed solutions have also used image-based data augmentation techniques. \\
+% In this paper, we discover that memorization that degrades meta-learner's performance also exists in image completion, meta-regression problem and real-world recommendation system, which are typical examples of neural processes. Unlike existing solutions, we propose an algorithm that solves memorization itself without data augmentation. 
+% This paper shows that attention mechanism and average pooling neural processes mainly used as the set encoder are difficult to train due to fragile and sensitive under a limited number of tasks with inevitable noises. Second, high-capacity decoders that generate predicted values of unseen data make it difficult for the set encoder to train properly. To mitigate the memorization, we employ the stochastic attention mechanism as the set encoder to properly express the relationship between context and target dataset even under noisy few-shot frameworks. We revisit the stochastic attention module from a different perspective, which has proven performance on large datasets such as graph attention networks and natural language processing \cite{Fan2020bayesian}. The stochasticity of the proposed model makes it insensitive to noise and prevents from memorizing the meta-train dataset, so that we can model the appropriate relationship between context and target datasets. Accordingly, even if a new task is not close to the tasks in meta-train dataset, the proposed model can properly predict target values based on the context dataset not the meta-train dataset. The proposed model provides several benefits over existing models. The important aspect is its robustness under the presence of model-data mismatch, where meta-test data comes from distribution different from the meta-train data. In the previous work, an ensemble of bootstrap and an auxiliary network to re-generate context data can guarantee model robustness under model-data mismatch, but it requires additional computation and lack of explanability of re-generated data \cite{lee2020bootstrapping}. However, the proposed model clearly captures the dependencies of context and target datasets guaranteeing model's predictive performance and insensitive to noises without additional parameters and resource consumption compared to attentive neural processes \cite{kim2019attentive} even if model-data mismatch. Moreover, this paper can be not only used in the real-world recommendation dataset, movieLenz-10k, but also in image completion, lotka-volterra and regression problems, which have limited numbers of users (tasks) and noisy datasets. This paper empirically shows that the proposed model can be fully utilized in several experiments like a real-world setting in which the variants of neural processes lack performance.
+% Typically, the neural processes can infer unseen data based on a given small amount of context dataset. However, when memorization occurs, neural processes do not consider the given context dataset and only make the functions learned in the meta-train step. 
+
+
+% \paragraph{NP의 개요}
+% \begin{itemize}
+%     \item {Meta learning framework를 기반 신규 데이터가 들어왔을 시 주어진 context 기반의 예측을 진행}
+%     \item {앞선 특성은 gaussian processes의 장점으로서 수학적인 아름다움은 갖고 있지 단점인 computation이 존재하였는데 NP는 그것을 해결할 수 있음을 실험적으로 보임}
+% \end{itemize}
+
+% \paragraph{NP의 활용} \begin{itemize} \item {generative query networks에서
+% NP를 large network로 확장하여 사용하고 있다. } \item {NP는 특히 gaussian
+% processes의 대체제로서 불확실성을 고려한 의사결정을 모델링할 수 있음을 보이며
+% bandits 문제 뿐만 아니라 recommendation, meta 강화학습에서 활용될 수 있음을
+% 보임} \item {Network architecture search 연구에 일환으로 특정 모델의 규모나
+% 특성을 input으로하 loss를 outpu으로 간주하여 아직 살펴보지 못한 모델의 loss를
+% 유추할 때 NP를 활용하여 모델링 하는 논문들이 주로 출판되었다.} \item {e.g)
+% Neural Complexity Measures, MetaPerturb, Neural Attention Processes}
+% \end{itemize}
+
+% \paragraph{Memorization in meta learning}
+% \begin{itemize}
+%     \item {Meta learning framework는 주어진 context points를 기반으로 예측을 진행하는 framework으로 일반적인 학습방법에 비해 일반화 특성이 뛰어남을 강점으로 갖고 있지만 task 구성에 제약이 있을 경우 네트워크가 memorization이 되고 있음을 살펴보았다. 이를 해결하는 방법으로는 stochasticity를 활용한 방법들이 제안됨}
+%     \item {Meta learning without memorization : 현재 동일한 tasks : input과 output pais가 계속 들어오는 형태이므로 input의 정보를 효과적으로 압축하면서도 memorization을 피할 수 있도록 적절한 noise를 부여할 수 있는 bayesian neural network 을 활용하여 input을 변경함으로써 meta train에서 생기는 memorization을 해결할 수 있음을보임}
+%     \item  {Meta learning requires meta augmentation : 앞서 제시된 논문이 input의 noise와 압축 네트워크를 이용하여 stochasticity를 부여하는 방법을 도모한것과는 다르게 output value에 noise를 부여함으로써 일반화 성능이 향상되는 것을 살펴볼 수 있었다.}
+%     \item  {Improving Generalization in Meta-learning via Task Augmentation : Manifold mixup의 영감을 받아 meta learning의 framework을 이용하여 Mixup 방식을 통해서 task augmentation을 함으로써 task의 수가 적거나 meta learning의 memorization이 발생할 시 해결할 수 있음을 보이고 있다.}
+% 	\item{현재까지 memorization의 문제를 제기한 것이 image centric 문제에 대해서만 보고가 되고 있다. 그러나 문제는 image centric 문제 뿐만 아니라 일반적인 table data를 포함하여 task가 한정적일 경우 regression 문제에서도 memorization이 발생할 수 있음을 보일 필요가 있다.}
+% \end{itemize}
+
+% \paragraph{Contribution}
+% \begin{itemize}
+%     \item {Image centric 문제 이외에도 일반적인 multi task learning 문제에서 memorization 이 발생할 수 있음을 제시 : Real data의 multi task setting에서 NP를 적용하면 발생할 수 있음,이 문제는 meta-train dataset의 형태를 외워 신규 task가 들어왔을 시 context points의 정보를 활용하지 못함을 의미}
+%     \item {그 때 발생하는 상황은 memorization 상황이 발생했을 경우 NPs 가지고 있는 각 모듈별 의도한 학습이 제대로 set encoding을 하는 encoder 역할을 제대로 학습하지 못함을 밝힘 : Memorization은 decoder의 capacity가 크기 때문에 발생 : 발생하는 데이터가 특정 데이터만 생성하기 때문에 decoder가 표현을 다 배움}
+%     \item {real dataset의 multi task learning에서 성능이 떨어지는 것을 확인 (movielenz) : real dataset에서는 task의 개수가 매우 제한적이기 때문 + noise가 있을 경우 학습에 방해하기 때문}
+%     \item {아쉽게도 기존 연구에서 NP가 어떤 상황에서 memorization이 이뤄지는지 언급되지 않음 meta-train overfitting을 방지하기 위해 np 알고리즘에 입각하여 해결할 수 있는 방법을 언급된 것이 없음}
+%     \item {이는 high capacity decoder와 set encoding이 잘못되었기 때문에 발생한다는 것을 밝혀냄, 본 모델이 제안하는 stochastic attention을 이용하여 context와 target의 설명을 명확하게 설명이 가능}
+%     \item {구체적으로 ANP에서 활용하는 attention이 few-shot setting에서는 원활히 적용되지 않음, 1D regression 실험을 통해서 attention heat map을 그렸을 때 설명력이 부족함을 확인할 수 있음, 특히 noise가 껴있을 경우 제대로 학습하지 못하는 상황이 발생 : Few-shots 상황과 noise가 섞여서 관계를 정확하게 묘사하지 못함}
+%     \item {본 연구에서는 stochastic attention의 heat map을 그리면 context와 target의 관계가 명확하게 보여지고 있음을 확인}
+%     \item {이에 따라 encoder와 decoder가 의도한대로 context를 명확하게 이해하여 학습할 수 있도록 의도함, 따라서 unseen task가 들어왔을 때 context만을 바라보게 함으로써 데이터로부터 주요 feature의 형태는 학습하면서도 context 정보도 효과적으로 추출할 수 있음을 보여주고 있다.}
+%     \item {Real datasets에서 월등한 성능을 보여주고자 한다. / Context points와 target에 대한 설명력 증대 / Neural Processes가 Real dataset에서도 활용이 가능함을 알 수 있음}
+%     \item {e.g)Lotka-volterra <-> Hare Model, MovieLenz-10k 데이터 셋, Image Completion (ALL, BALD) : domain adaptation 성능도 뛰어남}
+%     \item{Noise가 발생해도 강건하게 예측할 수 있음을 밝힘}
+%     \item{기존 Bootstrapped NP에서 보여준 것과 호환되는 결과를 보여줌, Noise가 있을 시 BNP는 다양한 샘플을 생성해야 하는 문제가 있어서 computation cost가 많이 소모가 됨, 제안된 모델은 1번의 feed-forward network + 1번에 MC Sampling을 통해서 noise가 있을 때도 모델의 강건성을 보여줄 수 있음}
+% \end{itemize}
